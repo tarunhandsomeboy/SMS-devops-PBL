@@ -15,7 +15,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/tarunhandsomeboy/sms-devops-pbl
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   docker-build:
