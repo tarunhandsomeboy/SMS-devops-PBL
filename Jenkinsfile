@@ -2,6 +2,11 @@
 pipeline {
     agent any
 
+    // Check GitHub for changes every 2 minutes
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+
     stages {
 
         stage('Checkout') {
@@ -36,6 +41,5 @@ pipeline {
                 bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t student-management:jenkins .'
             }
         }
-
     }
 }
