@@ -3,6 +3,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo 'Checking out Student Management System code'
@@ -18,17 +19,23 @@ pipeline {
             }
         }
 
-        
-stage('Docker Connection Test') {
-    steps {
-        echo 'Testing Docker connection'
+        stage('Docker Connection Test') {
+            steps {
+                echo 'Testing Docker connection'
 
-        bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" version'
+                bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" version'
 
-        bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" ps'
+                bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" ps'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Student Management System image'
+
+                bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t student-management:jenkins .'
+            }
+        }
+
     }
 }
-
-         }
-  }
-
