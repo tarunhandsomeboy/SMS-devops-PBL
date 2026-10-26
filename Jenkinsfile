@@ -17,5 +17,14 @@ pipeline {
                 echo 'Project files verified successfully.'
             }
         }
+
+        stage('Docker Connection Test') {
+            steps {
+                echo 'Testing Docker connection'
+                bat 'where docker'
+                bat 'docker version'
+                bat 'docker ps'
+            }
+        }
     }
 }
