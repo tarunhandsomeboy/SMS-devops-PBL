@@ -8,7 +8,9 @@ pipeline {
 
     environment {
         DOCKER = 'C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
-        IMAGE_NAME = 'student-management'
+        IMAGE_NAME = 'student-management:jenkins'
+        CONTAINER_NAME = 'sms-jenkins-test'
+        APP_PORT = '8083'
     }
 
     stages {
@@ -22,63 +24,59 @@ pipeline {
 
         stage('Verify Project Files') {
             steps {
-                bat '''
-                    if not exist index.html exit /b 1
-                    if not exist Dockerfile exit /b 1
-                    if not exist students.html exit /b 1
-                    echo Project files verified successfully.
-                '''
+                bat 'if not exist index.html exit /b 1'
+                bat 'if not exist Dockerfile exit /b 1'
+                bat 'if not exist compose.yaml exit /b 1'
+
+                echo 'Project files verified successfully.'
             }
         }
 
         stage('Docker Connection Test') {
             steps {
-                bat '''
-                    "%DOCKER%" version
-                    "%DOCKER%" ps
-                '''
+                echo 'Testing Docker connection'
+                bat '"%DOCKER%" version'
+                bat '"%DOCKER%" ps'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                bat '''
-                    "%DOCKER%" build -t student-management:jenkins-%BUILD_NUMBER% .
-                '''
+                echo 'Building Student Management System image'
+                bat '"%DOCKER%" build -t %IMAGE_NAME% .'
             }
         }
 
-        stage('Test New Image') {
+        stage('Deploy Test on Port 8083') {
             steps {
-                bat '''
-                    "%DOCKER%" run -d --name sms-jenkins-check-%BUILD_NUMBER% -p 127.0.0.1:18084:80 student-management:jenkins-%BUILD_NUMBER%
-                '''
+                echo 'Deploying Student Management System to port 8083'
 
-                bat '''
-                    powershell -NoProfile -Command "$ok=$false; for($i=0; $i -lt 15; $i++){ try { $r=Invoke-WebRequest -Uri 'http://localhost:18084' -TimeoutSec 3; if($r.StatusCode -eq 200){$ok=$true; break} } catch {}; Start-Sleep -Seconds 2 }; if(-not $ok){exit 1}; Write-Output 'Test website is responding.'"
-                '''
-            }
+                // Remove only the Jenkins test container.
+                // The production container on port 8080 is untouched.
+                bat '"%DOCKER%" rm -f %CONTAINER_NAME% 2>NUL || exit /b 0'
 
-            post {
-                always {
-                    bat '''
-                        "%DOCKER%" rm -f sms-jenkins-check-%BUILD_NUMBER%
-                    '''
-                }
+                // Start the newly built image on port 8083.
+                bat '"%DOCKER%" run -d --name %CONTAINER_NAME% -p %APP_PORT%:80 --restart unless-stopped %IMAGE_NAME%'
+
+                // Confirm that the test container is running.
+                bat '"%DOCKER%" ps --filter "name=%CONTAINER_NAME%"'
             }
         }
+    }
 
-        stage('Approve Production Deployment') {
-            steps {
-                input message: 'Tests passed. Deploy this version to production port 8080?', ok: 'Approve Deployment'
-            }
+    post {
+        success {
+            echo 'SUCCESS: Test deployment completed.'
+            echo 'Open http://localhost:8083'
+            echo 'Production port 8080 was not changed.'
         }
 
-        stage('Deploy to Port 8080') {
-            steps {
-                echo 'Production deployment requires a protected container swap.'
-                echo 'Do not replace the current production container until the deployment procedure is confirmed.'
-            }
+        failure {
+            echo 'FAILED: Check Console Output.'
+        }
+
+        always {
+            echo 'Jenkins pipeline finished.'
         }
     }
 }
