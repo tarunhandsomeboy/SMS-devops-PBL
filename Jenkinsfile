@@ -18,13 +18,17 @@ pipeline {
             }
         }
 
-        stage('Docker Connection Test') {
-            steps {
-                echo 'Testing Docker connection'
-                bat 'where docker'
-                bat 'docker version'
-                bat 'docker ps'
-            }
-        }
+        
+stage('Docker Connection Test') {
+    steps {
+        echo 'Testing Docker connection'
+
+        bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" version'
+
+        bat '"C:\\Users\\Varun\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" ps'
     }
 }
+
+         }
+  }
+
